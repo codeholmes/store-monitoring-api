@@ -5,10 +5,11 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     create_engine,
+    Index
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-engine = create_engine("sqlite:///db/store.sqlite", echo=True)
+engine = create_engine("sqlite:///db/store.sqlite", echo=False)
 Base = declarative_base()
 
 
@@ -57,6 +58,11 @@ class Report(Base):
     downtime_last_hour = Column(Integer, nullable=True)
     downtime_last_day = Column(Integer, nullable=True)
     downtime_last_week = Column(Integer, nullable=True)
+
+
+# creating index for status table
+index = Index('idx_status', Status.store_id, Status.timestamp_utc, Status.status)
+# index.create(engine)
 
 Base.metadata.create_all(engine)
 
