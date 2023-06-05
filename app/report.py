@@ -4,7 +4,7 @@ from Models.StoreModel import Store, Session, Report, ReportStatus
 import pandas as pd
 import random
 import string
-
+import threading
 
 def generate_random_string():
     """This function generates random string for report_id"""
@@ -17,12 +17,13 @@ def generate_report(report_id: str):
     """This function generates report for all stores and bulk insert into database"""
 
     session = Session()
-    stores = session.query(Store.id).limit(5).all()
+    stores = session.query(Store.id).limit(10).all()
 
     report = []
     store_count = 0
 
     session.add(ReportStatus(report_id=report_id, status="running"))
+    session.commit()
     for store_id in stores:
         store = StoreMonitor(store_id[0])
 
@@ -37,10 +38,10 @@ def generate_report(report_id: str):
                 "store_id": store_id[0],
                 "report_id": report_id,
                 "status": "complete",
-                "uptime_last_week": last_week_data["uptime"] / 3600,
-                "downtime_last_week": last_week_data["downtime"] / 3600,
-                "uptime_last_day": last_day_data["uptime"] / 60,
-                "downtime_last_day": last_day_data["downtime"] / 60,
+                "uptime_last_week": round(last_week_data["uptime"] / 3600, 2),
+                "downtime_last_week": round(last_week_data["downtime"] / 3600, 2),
+                "uptime_last_day": round(last_day_data["uptime"] / 60, 2),
+                "downtime_last_day": round(last_day_data["downtime"] / 60, 2),
             }
         )
         store_count += 1
@@ -60,7 +61,9 @@ def generate_report(report_id: str):
 def trigger_report_generation():
     """This function triggers report generation and returns report_id"""
     report_id = generate_random_string()
-    generate_report(report_id)
+    thread = threading.Thread(target=generate_report, args=(report_id,))
+    thread.start()
+    # generate_report(report_id)
     return report_id
 
 
