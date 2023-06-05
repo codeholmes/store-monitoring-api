@@ -25,6 +25,7 @@ class Status(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     store_id = Column(Integer, ForeignKey("store.id"))
     timestamp_utc = Column(DateTime)
+    timestamp_local = Column(DateTime)
     status = Column(String(8))
 
 
@@ -50,7 +51,7 @@ class Report(Base):
     __tablename__ = "report"
     id = Column(Integer, primary_key=True)
     store_id = Column(Integer, ForeignKey("store.id"))
-    report_id = Column(String(20), unique=True, nullable=False)
+    report_id = Column(String(20), nullable=False)
     status = Column(String(10))
     uptime_last_hour = Column(Integer, nullable=True)
     uptime_last_day = Column(Integer, nullable=True)
@@ -59,10 +60,16 @@ class Report(Base):
     downtime_last_day = Column(Integer, nullable=True)
     downtime_last_week = Column(Integer, nullable=True)
 
+class ReportStatus(Base):
+    """Report Status Model: Report ID, Status"""
+    __tablename__ = "report_status"
+    id = Column(Integer, primary_key=True)
+    report_id = Column(String(20), nullable=False)
+    status = Column(String(10))
 
-# creating index for status table
-index = Index('idx_status', Status.store_id, Status.timestamp_utc, Status.status)
-# index.create(engine)
+# creating index for status table, timezone table
+Index('idx_status', Status.store_id, Status.timestamp_utc, Status.status)
+Index("idx_timezone", TimeZone.store_id, TimeZone.timezone_str)
 
 Base.metadata.create_all(engine)
 
